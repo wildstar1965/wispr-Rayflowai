@@ -1,5 +1,8 @@
 # Caption quality repair — 23 October 2026
 
+> **Wispr Flow build context:** This repair supports the spoken editing story by
+> keeping captions legible and consistent after an agent proposes a change.
+
 Rayflow now adapts Caption Engine's stable caption layout and defaults to locally
 verified Medium transcription. The repair was compared against the supplied
 original video and the source project's generated reel. Existing unrelated working

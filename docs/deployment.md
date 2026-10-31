@@ -1,5 +1,9 @@
 # Local development and production deployment
 
+> **Wispr Flow build context:** For a convincing hackathon demo, verify both
+> spoken and typed directions: Wispr Flow supplies the natural voice workflow,
+> while the editor, backend, and renderer provide the observable result.
+
 Rayflow is React 19 + Vite and one FastAPI process with local FFmpeg, SQLite job
 history and bounded background threads. The Prisma schema is not connected to the
 runtime. Projects remain in browser localStorage; the backend stores shared media

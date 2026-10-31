@@ -1,5 +1,9 @@
 # RayFlow AI Design
 
+> **Wispr Flow build context:** RayFlow was designed and refined through spoken
+> prompts to Wispr Flow and voice agents. The product language below treats
+> voice as a first-class creative input alongside direct manipulation.
+
 ## Product direction
 
 RayFlow AI is a focused cinematic reel workstation. It turns photographs, music, and natural-language direction into beat-synchronized vertical videos.

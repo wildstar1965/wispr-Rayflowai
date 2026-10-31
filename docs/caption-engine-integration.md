@@ -1,5 +1,9 @@
 # Caption Engine integration
 
+> **Wispr Flow build context:** Voice agents can help direct caption treatment,
+> but caption timing and layout remain visible, editable, and verifiable in the
+> same timeline used for direct edits.
+
 Current caption quality, model defaults and verification are documented in
 [Caption quality repair](caption-quality-repair.md). The report below records the
 earlier integration; its Tiny/Base setup defaults are superseded by that repair.

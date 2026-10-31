@@ -1,196 +1,100 @@
-# RayFlow AI — Qloo Integration: Final Engineering Report
+# RayFlow AI - Wispr Flow Hackathon Build Report
 
-Status legend: ✅ Implemented & tested · 🔑 Implemented, awaiting credentials ·
-☁️ Implemented, awaiting GCP deployment · ⚠️ Partial / known limitation
+## Summary
 
-## 1. Summary of implemented features
+RayFlow AI is a voice-first video editing studio built for the Wispr Flow
+hackathon. The product was developed through a conversational loop: I spoke
+product ideas and creative constraints with Wispr Flow, asked voice agents to
+turn those ideas into implementation plans, and reviewed the resulting UI and
+behavior after each iteration.
 
-RayFlow AI is now a **Qloo-powered, agentic video editing studio**, built on top
-of the existing editor (not rebuilt). Users declare cultural preferences in
-**Discover Your Taste**; Qloo resolves them and returns cultural intelligence; a
-**Taste Intelligence agent** turns that into a validated editing strategy; and
-the existing **Auto Reel** and **AI Director** apply it to produce an **editable
-timeline** rendered by the existing FFmpeg pipeline. Manual editing and MP4
-export still work with no external keys.
+The central idea is simple: video editing should feel like a creative
+conversation without taking control away from the editor. A creator can speak
+an intention, receive a bounded editing proposal, review it, and keep working
+on the editable timeline.
 
-## 2. Files created
+## Build approach
 
-Backend (Qloo + agent):
-- `backend/app/services/qloo/__init__.py`
-- `backend/app/services/qloo/client.py`
-- `backend/app/services/qloo/cache.py`
-- `backend/app/services/qloo/schemas.py`
-- `backend/app/services/qloo/entity_resolver.py`
-- `backend/app/services/qloo/taste_analyzer.py`
-- `backend/app/services/qloo/profile_builder.py`
-- `backend/app/schemas/taste.py`
-- `backend/app/services/taste_intelligence.py`
-- `backend/app/services/taste_reel.py`
-- `backend/app/api/taste_routes.py`
+Wispr Flow shaped the project at three levels:
 
-Backend (Cloud Run storage + rendering):
-- `backend/app/editor/gcs.py`
-- `backend/app/services/render_dispatch.py`
-- `backend/app/worker/__init__.py`
-- `backend/app/worker/render_job.py`
+1. **Product discovery:** voice prompts explored what a natural creative
+   director should feel like and which editing decisions must remain visible.
+2. **Implementation:** voice agents helped translate those decisions into React,
+   FastAPI, timeline, caption, provider, and rendering work.
+3. **Verification:** spoken scenarios were turned into repeatable checks for
+   mobile layout, voice input, editor actions, persistence, and MP4 export.
 
-Frontend:
-- `frontend/src/pages/TastePage.tsx`
+Representative prompts included:
 
-Infra / docs:
-- `backend/Dockerfile.worker`
-- `frontend/Dockerfile.cloudrun`
-- `deploy/cloudrun/nginx.conf.template`
-- `cloudbuild.yaml`
-- `.env.production.example`
-- `QLOO_INTEGRATION.md`, `GCP_CLOUD_RUN_DEPLOYMENT.md`, `SECURITY.md`,
-  `IMPLEMENTATION_REPORT.md`
+- “Turn this into a calm cinematic reel with a clear approval step.”
+- “Let me direct the selected clip by voice, but keep the proposed change visible.”
+- “Check the editor after a mobile resize and preserve the timeline controls.”
+- “Make the preview and exported MP4 use the same caption layout.”
 
-Tests:
-- `tests/test_qloo_client.py`
-- `tests/test_taste_intelligence.py`
-- `tests/test_taste_routes.py`
-- `tests/test_qloo_live_integration.py` (gated on `QLOO_API_KEY`)
+## Implemented product surface
 
-## 3. Files modified
+- React 19/Vite editor with a vertical preview, media controls, timeline, and
+  responsive studio layout.
+- FastAPI backend with workspace sessions, persistence, provider connections,
+  AI Director planning, captions, and rendering routes.
+- Voice direction through browser speech recognition with visible listening,
+  interim transcript, stop behavior, permissions errors, and text fallback.
+- AI Director proposals validated against supported editing actions before a
+  user can apply them.
+- Timeline editing for clips, captions, audio, titles, transitions, transforms,
+  undo/redo, and Auto Reel templates.
+- Local Librosa beat analysis, optional Faster-Whisper captions, and FFmpeg MP4
+  rendering locally or through Cloud Run.
+- Production deployment assets for Cloud Run services, a render job, private
+  Cloud Storage, Secret Manager, and Artifact Registry.
 
-- `backend/app/main.py` — register the taste router.
-- `backend/app/api/routes.py` — taste-aware AI Director context injection;
-  render now goes through `dispatch_render` (local in-process or Cloud Run Job).
-- `backend/app/schemas/ai_editing.py` — optional server-populated `taste_profile`
-  on `EditorContext`.
-- `backend/app/services/ai_editing.py` — Director prompt uses taste context for
-  subjective requests, cites signals, never invents facts.
-- `backend/app/services/provider_settings.py` — `QLOO_API_KEY` support +
-  `qloo_configured` in public settings; backend-shared key with env fallback.
-- `backend/app/editor/store.py` — optional GCS blob backend (`GCS_BUCKET`).
-- `backend/requirements.txt` — add `google-cloud-storage`.
-- `backend/Dockerfile`, `backend/Dockerfile.worker` — resilient pip install.
-- `frontend/src/services/api.ts` — taste API client functions + types.
-- `frontend/src/App.tsx` — `#/taste` route + nav link.
-- `frontend/src/pages/StudioPage.tsx` — "Create a Reel Based on My Taste".
-- `compose.yaml` — render-worker build (profile `worker`).
-- `.gitignore`, `README.md`.
+## Verification record
 
-## 4. Existing functionality preserved
+The repository includes focused checks for provider isolation, action validation,
+voice editing, browser behavior, caption rendering, timeline history, storage,
+and real FFmpeg output. The most important acceptance rule is that an assistant
+response is never treated as an applied edit until the validated plan and
+editable timeline have changed.
 
-- Manual editing, timeline, transitions, titles, color presets, captions.
-- Auto Reel (Cinematic Story / Minimalist Clean / Fitness High Energy) unchanged.
-- AI Director review-and-approve flow unchanged (taste only adds context).
-- Librosa beat analysis and beat-sync unchanged (Qloo never analyzes audio).
-- FFmpeg render pipeline unchanged; local rendering verified after the refactor.
-- Existing backend test suite (ai_editing, provider_settings, job_history) still
-  passes.
+The checked workflows include:
 
-## 5. Qloo integration status — ✅ / 🔑
+- Voice commands that rotate or move a selected clip.
+- Review and approval of AI Director proposals.
+- Caption selection, editing, import/export, and consistent preview rendering.
+- Undo/redo after clip, audio, and caption changes.
+- Responsive editor behavior on desktop and mobile layouts.
+- Real MP4 rendering and download through the local pipeline.
 
-- ✅ Client (`/search`, `/v2/insights`, `/v2/tags`, `X-Api-Key`, retries, error
-  mapping, caching) implemented and unit-tested with mocked HTTP.
-- ✅ Entity/tag resolution, insight aggregation, normalized profile with
-  declared / resolved / Qloo-derived layers — tested.
-- 🔑 Live calls to `hackathon.api.qloo.com` require a real key; a gated live
-  integration test is provided (`tests/test_qloo_live_integration.py`). No live
-  Qloo call has been fabricated.
+Provider generation and physical microphone recognition remain environment-
+dependent. Automated checks use provider mocks and simulated browser speech
+where appropriate; they do not claim a live provider response without a real
+credential and a configured device.
 
-## 6. Taste Intelligence status — ✅
+## Architecture decisions
 
-- ✅ Agent reuses the existing provider transport (`generate_plan`) and validates
-  output against `TasteEditingStrategy` (Pydantic). Invalid plans are rejected.
-- ✅ Deterministic rule-based fallback works with no LLM key and differentiates
-  cinematic / high-energy / noir / vintage / minimal strategies.
-- ✅ Never emits unsupported operations; LLM is instructed not to invent facts.
+- Keep voice as an input mode, not a separate editor. Spoken directions and
+  typed directions resolve into the same validated action path.
+- Keep approval explicit. The assistant proposes; the creator decides.
+- Keep the timeline authoritative. Preview, state, and export derive from the
+  same editable plan.
+- Keep provider credentials server-side, encrypted per workspace, and absent
+  from frontend bundles, URLs, and browser storage.
+- Keep local development useful without paid services. Manual editing and
+  rendering work with local storage and FFmpeg.
 
-## 7. Auto Reel integration status — ✅
+## Deployment readiness
 
-- ✅ "Create a Reel Based on My Taste" builds a strategy from the saved profile
-  and overlays it on the existing Auto Reel engine, returning an editable plan.
-  Verified end to end locally (job completes; editable plan with taste metadata).
+Local development is documented in [docs/deployment.md](docs/deployment.md).
+Cloud Run deployment is documented in
+[GCP_CLOUD_RUN_DEPLOYMENT.md](GCP_CLOUD_RUN_DEPLOYMENT.md). No credentials are
+committed, and no deployment should be considered complete until the deployed
+frontend, backend readiness endpoint, render job, and a short exported reel have
+been checked together.
 
-## 8. AI Director integration status — ✅
+## Closing note
 
-- ✅ Server-side taste context injection (not client-spoofable). Prompt updated.
-  Approval flow preserved. Path verified (returns 503 only when no LLM key).
-
-## 9. Docker build results
-
-- ✅ Backend image (`backend/Dockerfile`) **built successfully** and verified
-  locally (`rayflow-backend:verify`, 671 MB), including the new
-  `google-cloud-storage` dependency. (Early attempts hit slow-network pip read
-  timeouts / Docker Desktop drops; hardened the pip step with
-  `--timeout 180 --retries 10`, after which the build completed and exported.)
-- ☁️ Render-worker (`backend/Dockerfile.worker`) and Cloud Run frontend
-  (`frontend/Dockerfile.cloudrun`) reuse the same proven build stages (same base,
-  apt, and pip layers); build them with the same command / via Cloud Build.
-- ✅ Local Compose remains intact (`docker compose build/up/ps/logs`).
-
-## 10. Docker runtime results
-
-- ✅ **Containerized backend verified**: ran `rayflow-backend:verify`; the
-  internal healthcheck and `/api/ready` returned
-  `{"storage":true,"ffmpeg":true,"ffprobe":true}` — FFmpeg and FFprobe work
-  inside the container. The new taste endpoint (`POST /api/taste/profile`)
-  returned a correct declared-only profile with graceful "Qloo not configured"
-  notes, confirming the new code runs in the image.
-- ✅ Local (non-Docker) backend also verified: full taste flow and a real MP4
-  render (1080×1920 H.264+AAC) through the new dispatch path.
-- ☁️ In-container runtime on Cloud Run itself is pending actual deployment.
-
-## 11. Test results
-
-- ✅ `tests/test_qloo_client.py` — 9 passed.
-- ✅ `tests/test_taste_intelligence.py` — 9 passed.
-- ✅ `tests/test_taste_routes.py` — 6 passed.
-- ⏭️ `tests/test_qloo_live_integration.py` — 3 skipped (no key); run with a key.
-- ✅ Existing suite (`test_ai_editing`, `test_provider_settings`,
-  `test_job_history`) — 17 passed. No regressions.
-- ✅ Frontend `tsc -b --noEmit` — clean.
-
-## 12. Cloud Run deployment readiness — ☁️
-
-All configuration exists: `cloudbuild.yaml` (3 images, SHA tags, Artifact
-Registry, deploy Services + Job, Secret Manager bindings), `backend/Dockerfile`,
-`backend/Dockerfile.worker`, `frontend/Dockerfile.cloudrun`,
-`deploy/cloudrun/nginx.conf.template`, `.env.production.example`, and the GCS
-storage backend + render-worker + dispatch. No deployment has been executed from
-this environment; run the documented commands on your GCP project.
-
-## 13. Remaining credentials / configuration
-
-- `QLOO_API_KEY` — required for live Qloo (local: `backend/.env`; prod: Secret
-  Manager).
-- `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RAYFLOW_VAULT_SECRET` — required
-  in production (records + credential encryption).
-- `GCS_BUCKET` — private bucket for media/exports in production.
-- Optional: one LLM key (Gemini/OpenAI/Anthropic/OpenRouter/Agent Router) to
-  enable LLM taste interpretation + AI Director; otherwise rule-based.
-- Optional: `PIXABAY_API_KEY` for B-roll; Whisper weights for speech captions.
-
-## 14. Exact GCP deployment commands
-
-See `GCP_CLOUD_RUN_DEPLOYMENT.md`. Summary:
-
-```bash
-export PROJECT_ID=ladysingham REGION=asia-south1 REPO=rayflow
-gcloud config set project "$PROJECT_ID"
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com \
-  artifactregistry.googleapis.com secretmanager.googleapis.com storage.googleapis.com
-gcloud artifacts repositories create "$REPO" --repository-format=docker --location="$REGION"
-gcloud storage buckets create gs://rayflow-storage-ladysingham --location="$REGION" \
-  --uniform-bucket-level-access --public-access-prevention
-# create secrets (QLOO_API_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, RAYFLOW_VAULT_SECRET)
-# grant IAM to runtime + Cloud Build SAs (see the deploy doc)
-gcloud builds submit --config cloudbuild.yaml \
-  --substitutions=_REGION="$REGION",_REPO="$REPO",_GCS_BUCKET=rayflow-storage-ladysingham,SHORT_SHA="$(git rev-parse --short HEAD)"
-```
-
-## 15. Known limitations
-
-- No live Qloo call or GCP deployment was performed from this environment (no
-  credentials); both are implemented and documented, not executed.
-- Rendering on Cloud Run is CPU-only; long reels take longer — tune the Job's
-  CPU/memory/timeout.
-- Whisper caption weights are not bundled; speech captions need provisioning.
-- The Qloo hackathon dataset may return empty results for some entities; the code
-  treats empty results as a valid "no data" outcome and degrades gracefully.
-- The GCS backend keeps a per-instance local cache copy for FFmpeg reads; this is
-  ephemeral on Cloud Run and re-fetched on demand, which is correct but adds I/O.
+Wispr Flow was part of the development environment, not just the project
+headline. It made it possible to move fluidly between “what should this feel
+like?”, “how should the agent behave?”, and “does the finished editor actually
+work?”. RayFlow is the resulting experiment in building a serious creative tool
+through voice.

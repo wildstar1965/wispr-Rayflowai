@@ -1,5 +1,9 @@
 # Measured production activity
 
+> **Wispr Flow build context:** Analytics should make the voice-agent workflow
+> inspectable: distinguish a direction being submitted from a plan being
+> applied and a rendered reel being completed.
+
 `GET /api/analytics` reads one SQLite snapshot from `STORAGE_DIR/jobs.sqlite3`.
 Render, standalone transcription and creative workers record queued, processing,
 and terminal lifecycle events. Repeated completion events cannot rewrite history.

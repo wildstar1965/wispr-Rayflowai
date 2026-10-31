@@ -1,5 +1,9 @@
 # Selected reference integrations
 
+> **Wispr Flow build context:** Reference code supports the editor mechanics;
+> Wispr Flow supplies the conversational development and creative-direction
+> layer that this project is demonstrating.
+
 Original project: AI Video Production Editor by Ludwig Maximillian Kienle,
 https://github.com/LudwigKienle/ai-video-production-editor (GPL-3.0-or-later).
 The selected code and adaptations retain NOTICE and LICENSE under

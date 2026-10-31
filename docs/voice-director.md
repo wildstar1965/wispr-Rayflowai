@@ -1,5 +1,9 @@
 # Voice editing and provider verification
 
+> **Wispr Flow build context:** This workflow is the user-facing expression of
+> the Wispr Flow hackathon build: speak a creative direction, review the
+> proposed action, and keep the editable timeline authoritative.
+
 ## Using the changes
 
 1. Open Connections and choose Ollama or Agent Router under Studio AI director. Save the preference. AI Editor assistant Chat mode uses this selection too.

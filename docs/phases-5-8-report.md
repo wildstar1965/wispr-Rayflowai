@@ -1,5 +1,9 @@
 # Rayflow phases 5–8 implementation and verification
 
+> **Wispr Flow build context:** These phases are part of the voice-first
+> hackathon build, connecting spoken intent to a reviewable editor state rather
+> than treating agent output as an invisible shortcut.
+
 Date: 23 October 2026. Scope: complete the remaining phases on top of the existing
 phase 1–4 work. Existing editor, landing design, caption/reference adapters, project
 data, credentials and unrelated uncommitted changes were preserved. No deployment

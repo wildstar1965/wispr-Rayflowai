@@ -1,5 +1,9 @@
 # RayFlow AI — Google Cloud Run Deployment
 
+> **Wispr Flow hackathon context:** The deployed demo should make the full
+> voice-to-edit loop visible: speak a direction, review the AI Director plan,
+> approve it, and verify the resulting MP4.
+
 This guide deploys RayFlow AI to **Google Cloud Run** using Cloud Run Services
 (frontend + backend) and a Cloud Run Job (rendering), with Cloud Storage for
 media, Secret Manager for credentials, Artifact Registry for images, and Cloud
@@ -36,7 +40,7 @@ Browser ──HTTPS──▶ rayflow-frontend (Cloud Run Service, nginx)
                    Cloud Storage (ONE private bucket):
                      • records/  → projects, jobs, taste profiles (JSON)
                      • uploads/ projects/ exports/ → media (blobs)
-                   Secret Manager (QLOO_API_KEY, vault secret, optional LLM keys)
+                   Secret Manager (vault secret, provider keys)
 ```
 
 The backend and render job **do not share a filesystem**. Cloud Storage is the
@@ -47,7 +51,7 @@ progress. No Supabase or Cloud SQL is required.
 ## 0. Prerequisites
 
 - `gcloud` CLI authenticated (Cloud Shell is already authenticated).
-- A Qloo hackathon API key.
+- Provider credentials only if the AI Director or hosted transcription is enabled.
 
 **No external database.** Persistence (projects, jobs, taste profiles) and media
 both live in a single **private Google Cloud Storage bucket**. Records are stored
@@ -102,12 +106,11 @@ gcloud storage buckets update gs://rayflow-storage-ladysingham --lifecycle-file=
 Only two secrets are required (values never go in the repo or images):
 
 ```bash
-printf '%s' 'YOUR_QLOO_KEY' | gcloud secrets create QLOO_API_KEY --data-file=-
 # 32+ byte random string for encrypting per-workspace provider credentials:
 python3 -c "import secrets;print(secrets.token_urlsafe(48))" | gcloud secrets create RAYFLOW_VAULT_SECRET --data-file=-
 
-# Optional LLM key(s) — enables LLM taste interpretation / AI Director:
-# printf '%s' 'YOUR_GEMINI_KEY' | gcloud secrets create GEMINI_API_KEY --data-file=-
+# Optional provider key(s) - enables AI Director generation:
+# printf '%s' 'YOUR_PROVIDER_KEY' | gcloud secrets create AI_PROVIDER_API_KEY --data-file=-
 ```
 
 ## 5. IAM (least privilege)
@@ -119,7 +122,7 @@ create a dedicated one. Grant it only what it needs:
 export RUNTIME_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
 
 # Read the required secrets.
-for S in QLOO_API_KEY RAYFLOW_VAULT_SECRET; do
+for S in RAYFLOW_VAULT_SECRET; do
   gcloud secrets add-iam-policy-binding "$S" \
     --member="serviceAccount:${RUNTIME_SA}" \
     --role="roles/secretmanager.secretAccessor"
@@ -168,14 +171,14 @@ gcloud run deploy rayflow-backend \
   --region="$REGION" --no-allow-unauthenticated --port=8000 \
   --cpu=2 --memory=2Gi --concurrency=20 --timeout=900 --max-instances=4 \
   --set-env-vars=RAYFLOW_ENV=production,RAYFLOW_STORAGE_DIR=/tmp/rayflow,GCS_BUCKET=rayflow-storage-ladysingham,GCP_PROJECT_ID=${PROJECT_ID},GCP_REGION=${REGION},RENDER_CLOUD_RUN_JOB=rayflow-render \
-  --set-secrets=QLOO_API_KEY=QLOO_API_KEY:latest,RAYFLOW_VAULT_SECRET=RAYFLOW_VAULT_SECRET:latest
+  --set-secrets=RAYFLOW_VAULT_SECRET=RAYFLOW_VAULT_SECRET:latest
 
 # Render Job
 gcloud run jobs create rayflow-render \
   --image="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}/render-worker:$(git rev-parse --short HEAD)" \
   --region="$REGION" --tasks=1 --max-retries=1 --task-timeout=2000 --cpu=2 --memory=4Gi \
   --set-env-vars=RAYFLOW_ENV=production,RAYFLOW_STORAGE_DIR=/tmp/rayflow,GCS_BUCKET=rayflow-storage-ladysingham,GCP_PROJECT_ID=${PROJECT_ID},GCP_REGION=${REGION} \
-  --set-secrets=QLOO_API_KEY=QLOO_API_KEY:latest,RAYFLOW_VAULT_SECRET=RAYFLOW_VAULT_SECRET:latest
+  --set-secrets=RAYFLOW_VAULT_SECRET=RAYFLOW_VAULT_SECRET:latest
 
 # Frontend (wire to backend URL)
 BACKEND_URL=$(gcloud run services describe rayflow-backend --region="$REGION" --format='value(status.url)')
@@ -200,9 +203,10 @@ gcloud run services logs read rayflow-backend --region="$REGION" --limit=50
 gcloud run jobs executions list --job=rayflow-render --region="$REGION"
 ```
 
-Then in the browser: open the frontend URL → **Discover Your Taste** → enter
-preferences → Studio → upload media → **Create a Reel Based on My Taste** →
-Export MP4.
+Then in the browser: open the frontend URL → use Wispr Flow to speak a creative
+direction → open Studio → upload media → review the AI Director proposal →
+approve the edit → Export MP4. Repeat the same scenario with typed input to
+verify that voice and text share the same editing path.
 
 ## Notes & limits
 

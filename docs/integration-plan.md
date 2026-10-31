@@ -1,5 +1,9 @@
 # Rayflow integration audit
 
+> **Wispr Flow build context:** Integration work is successful when a spoken
+> direction can travel through the same provider, validation, persistence, and
+> rendering path as a typed direction.
+
 Target: React 19 / TypeScript / Vite, FastAPI, local FFmpeg and faster-whisper.
 Projects currently persist in browser localStorage; media persists under backend/storage.
 The Prisma schema is aspirational, not an active NestJS/Next.js application.

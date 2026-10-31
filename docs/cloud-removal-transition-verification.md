@@ -1,5 +1,9 @@
 # Cloud Storage removal and transition verification
 
+> **Wispr Flow build context:** Infrastructure changes are evaluated against the
+> same hackathon promise: a creator can speak a direction, review the result,
+> and trust that the saved project and export still match it.
+
 Completed verification on 25 October 2026 in the existing Rayflow.ai workspace. This resumes the interrupted changes; unrelated in-progress AI Director, voice, provider and caption work was retained.
 
 Source checkpoints are `test_artifacts/before-cloud-transition-fix.zip` and `test_artifacts/before-transition-resume.zip`. They are source backups, not project/database backups. No user assets, databases or legacy connection records were deleted.

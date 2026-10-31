@@ -1,5 +1,9 @@
 # Ollama connectivity
 
+> **Wispr Flow build context:** Ollama is one runtime behind the conversational
+> editing experience. Wispr Flow supplies the natural voice workflow; this
+> document covers how the selected local model receives the resulting direction.
+
 Rayflow contacts Ollama from FastAPI, never directly from the browser. Local
 default: `http://127.0.0.1:11434`. In Connections, save the host and installed model,
 then use Reconnect Ollama and Test selected model. Blank model means first installed

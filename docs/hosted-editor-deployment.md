@@ -1,5 +1,9 @@
 # Rayflow on Vercel, Render, and Supabase
 
+> **Wispr Flow build context:** Hosted deployment should preserve the full
+> voice-to-review loop from the hackathon build, including backend-only provider
+> credentials and a stable editable timeline after refreshes.
+
 The complete application is built from Rayflow. The editor is a lazy-loaded React
 section at `#/editor`; FastAPI owns sessions, projects, providers, and processing.
 The internal Node worker runs SDK/media operations and has no public HTTP server.

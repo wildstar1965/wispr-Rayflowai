@@ -1,5 +1,9 @@
 **Rayflow AI editor layout and opening experience**
 
+> **Wispr Flow build context:** The editor must keep voice direction and review
+> controls usable at every viewport size; layout regressions are therefore
+> product regressions, not cosmetic-only issues.
+
 **Root cause.** The reproducible blank-space bug was `AIAssistant.tsx` calling `messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })`. That scrolled ancestor containers, including the editor frame with `overflow: hidden`. After resizing from 1440×1000 to 1366×768, the frame body began at y=-154 instead of y=111: a 265px displacement, leaving the workspace bottom at y=503 and black space below. The initial desktop dimensions alone did not reproduce the bug; resizing exposed it. The clip strip in `EditorPageShell.tsx` used the same ancestor-scrolling API.
 
 The layout also had conflicting viewport ownership: the shell only had `min-h-screen`; the editor subtracted 58px, 96px, then 74px at different breakpoints and forced minimum heights of 560px, 520px, then 640px. At 844×390 the editor extended to y=618. Side-panel inline `minWidth: 0` defeated their CSS minimum, squeezing the media browser. Preview and timeline percentage flex bases consumed 100% of the center before its toolbar, dividers and gaps were counted. Mobile bottom navigation had a centered intrinsic-width grid with no horizontal scrolling.

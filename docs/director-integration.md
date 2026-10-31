@@ -1,5 +1,9 @@
 # Director and provider integration
 
+> **Wispr Flow build context:** The Director was shaped through conversational
+> prompts in Wispr Flow. Voice and text directions enter the same validated
+> planning path so the assistant feels conversational without bypassing review.
+
 Implemented for Open Studio (`#/studio`), using the existing React 19/Vite application,
 FastAPI service, workspace sessions, encrypted credential vault, shared reel persistence,
 and `EditingPlan`. Node 24 and Python 3.10 were used for verification.

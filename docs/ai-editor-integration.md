@@ -1,5 +1,9 @@
 # AI Editor integration: implementation and verification status
 
+> **Wispr Flow build context:** This integration is part of the conversational
+> editor demonstrated for the hackathon. Voice and text directions should share
+> the same validated tools, visible state changes, and recovery behavior.
+
 Updated 2026-10-23. **Integration is in progress; this is not a completion certificate.**
 The latest overall engineering estimate given to the user was **75%**. This reflects
 implementation plus acceptance work, not a measured percentage of passing features.
